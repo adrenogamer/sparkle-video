@@ -49,6 +49,10 @@
 #include <X11/extensions/xf86dgaproto.h>
 #endif
 
+#ifdef SPARKLE_MODE
+#include "xf86Crtc.h"
+#endif
+
 /* Mandatory functions */
 static const OptionInfoRec *	DUMMYAvailableOptions(int chipid, int busid);
 static void     DUMMYIdentify(int flags);
@@ -58,7 +62,9 @@ static Bool     DUMMYScreenInit(SCREEN_INIT_ARGS_DECL);
 static Bool     DUMMYEnterVT(VT_FUNC_ARGS_DECL);
 static void     DUMMYLeaveVT(VT_FUNC_ARGS_DECL);
 static Bool     DUMMYCloseScreen(CLOSE_SCREEN_ARGS_DECL);
+#ifndef SPARKLE_MODE
 static Bool     DUMMYCreateWindow(WindowPtr pWin);
+#endif
 static void     DUMMYFreeScreen(FREE_SCREEN_ARGS_DECL);
 static ModeStatus DUMMYValidMode(SCRN_ARG_TYPE arg, DisplayModePtr mode,
                                  Bool verbose, int flags);
@@ -74,6 +80,20 @@ static Bool	dummyDriverFunc(ScrnInfoPtr pScrn, xorgDriverFuncOp op,
 
 /* static void     DUMMYDisplayPowerManagementSet(ScrnInfoPtr pScrn, */
 /* 				int PowerManagementMode, int flags); */
+
+#ifdef SPARKLE_MODE
+
+static Bool DUMMYUpdateModes(ScrnInfoPtr pScrn, int width, int height);
+
+static Bool DUMMYOpenSharedResources(ScreenPtr pScreen);
+static Bool DUMMYCloseSharedResources(ScreenPtr pScreen);
+
+static Bool DUMMYCreateScreenResources(ScreenPtr pScreen);
+static void DUMMYBlockHandler(ScreenPtr pScreen, void *pTimeout, void *pReadmask);
+
+static Bool DUMMYCrtc_set_mode_major(xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation, int x, int y);
+
+#endif
 
 #define DUMMY_VERSION 4000
 #define DUMMY_NAME "DUMMY"
@@ -274,6 +294,171 @@ DUMMYProbe(DriverPtr drv, int flags)
 			    return FALSE;\
 					     }
 
+
+#ifdef SPARKLE_MODE
+//==================================================================================================
+
+Bool DUMMYCrtc_resize(ScrnInfoPtr pScrn, int width, int height)
+{
+    xf86CrtcConfigPtr xf86_config = XF86_CRTC_CONFIG_PTR(pScrn);
+    ScreenPtr pScreen = xf86ScrnToScreen(pScrn);
+    DUMMYPtr dPtr = DUMMYPTR(pScrn);
+
+
+    xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Crtc resize: %dx%d\n", width, height);
+
+
+    PixmapPtr pPixmap = pScreen->GetScreenPixmap(pScreen);
+
+    if (pScrn->virtualX == width && pScrn->virtualY == height)
+    {
+        return TRUE;
+    }
+
+    pScrn->virtualX = width;
+    pScrn->virtualY = height;
+    pScrn->displayWidth = width; //FIXME
+
+    int cpp = (pScrn->bitsPerPixel + 7) / 8;
+    pScreen->ModifyPixmapHeader(pPixmap, width, height, -1, -1, pScrn->displayWidth * cpp, NULL);
+
+    //FIXME Needed?
+    int i;
+    for (i = 0; i < xf86_config->num_crtc; i++)
+    {
+        xf86CrtcPtr crtc = xf86_config->crtc[i];
+
+        if (!crtc->enabled)
+            continue;
+
+        DUMMYCrtc_set_mode_major(crtc, &crtc->mode, crtc->rotation, crtc->x, crtc->y);
+    }
+
+    dPtr->shared->pixmapWidth = pScrn->virtualX;
+    dPtr->shared->pixmapHeight = pScrn->virtualY;
+
+    return TRUE;
+}
+
+static const xf86CrtcConfigFuncsRec dummyCrtcConfigFuncs = {
+    DUMMYCrtc_resize
+    //Bool (*resize) (ScrnInfoPtr scrn, int width, int height);
+};
+
+//==================================================================================================
+
+static void DUMMYCrtc_dpms(xf86CrtcPtr crtc, int mode)
+{
+}
+
+//FIXME Check
+static Bool DUMMYCrtc_set_mode_major(xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation, int x, int y)
+{
+    crtc->mode = *mode;
+    crtc->x = x;
+    crtc->y = y;
+    crtc->rotation = rotation;
+
+    return TRUE;
+}
+
+//FIXME Check mandatory
+static const xf86CrtcFuncsRec dummyCrtcFuncs = {
+    .dpms = DUMMYCrtc_dpms,
+    .set_mode_major = DUMMYCrtc_set_mode_major,
+    //void (*dpms) (xf86CrtcPtr crtc, int mode);
+    //void (*save) (xf86CrtcPtr crtc);
+    //void (*restore) (xf86CrtcPtr crtc);
+    //Bool (*lock) (xf86CrtcPtr crtc);
+    //void (*unlock) (xf86CrtcPtr crtc);
+    //Bool (*mode_fixup) (xf86CrtcPtr crtc, DisplayModePtr mode, DisplayModePtr adjusted_mode);
+    //void (*prepare) (xf86CrtcPtr crtc);
+    //void (*mode_set) (xf86CrtcPtr crtc, DisplayModePtr mode, DisplayModePtr adjusted_mode, int x, int y);
+    //void (*commit) (xf86CrtcPtr crtc);
+    //void (*gamma_set) (xf86CrtcPtr crtc, CARD16 *red, CARD16 *green, CARD16 *blue, int size);
+    //void *(*shadow_allocate) (xf86CrtcPtr crtc, int width, int height);
+    //PixmapPtr (*shadow_create) (xf86CrtcPtr crtc, void *data, int width, int height);
+    //void (*shadow_destroy) (xf86CrtcPtr crtc, PixmapPtr pPixmap, void *data);
+    //void (*set_cursor_colors) (xf86CrtcPtr crtc, int bg, int fg);
+    //void (*set_cursor_position) (xf86CrtcPtr crtc, int x, int y);
+    //void (*show_cursor) (xf86CrtcPtr crtc);
+    //void (*hide_cursor) (xf86CrtcPtr crtc);
+    //void (*load_cursor_image) (xf86CrtcPtr crtc, CARD8 *image);
+    //Bool (*load_cursor_image_check) (xf86CrtcPtr crtc, CARD8 *image);
+    //void (*load_cursor_argb) (xf86CrtcPtr crtc, CARD32 *image);
+    //Bool (*load_cursor_argb_check) (xf86CrtcPtr crtc, CARD32 *image);
+    //void (*destroy) (xf86CrtcPtr crtc);
+    //Bool (*set_mode_major) (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation, int x, int y);
+    //void (*set_origin) (xf86CrtcPtr crtc, int x, int y);
+    //Bool (*set_scanout_pixmap)(xf86CrtcPtr crtc, PixmapPtr pixmap);
+};
+
+
+//==================================================================================================
+
+
+static void
+DUMMYOutput_dmps(xf86OutputPtr output, int mode)
+{
+}
+
+static xf86OutputStatus
+DUMMYOutput_detect(xf86OutputPtr output)
+{
+    return XF86OutputStatusConnected;
+}
+
+static int
+DUMMYOutput_mode_valid(xf86OutputPtr output, DisplayModePtr pMode)
+{
+    //FIXME
+    return MODE_OK;
+}
+
+static DisplayModePtr
+DUMMYOutput_get_modes(xf86OutputPtr output)
+{
+    ScrnInfoPtr pScrn;
+    DUMMYPtr dPtr;
+
+    pScrn = output->scrn;
+    dPtr = DUMMYPTR(pScrn);
+
+    return xf86DuplicateModes(NULL, dPtr->modes);
+}
+
+static const xf86OutputFuncsRec dummyOutputFuncs = {
+    .dpms = DUMMYOutput_dmps,
+    .detect = DUMMYOutput_detect,
+    .mode_valid = DUMMYOutput_mode_valid,
+    .get_modes = DUMMYOutput_get_modes,
+    //void (*create_resources) (xf86OutputPtr output);
+    //void (*dpms) (xf86OutputPtr output, int mode);
+    //void (*save) (xf86OutputPtr output);
+    //void (*restore) (xf86OutputPtr output);
+    //int (*mode_valid) (xf86OutputPtr output, DisplayModePtr pMode);
+    //Bool (*mode_fixup) (xf86OutputPtr output, DisplayModePtr mode, DisplayModePtr adjusted_mode);
+    //void (*prepare) (xf86OutputPtr output);
+    //void (*commit) (xf86OutputPtr output);
+    //void (*mode_set) (xf86OutputPtr output, DisplayModePtr mode, DisplayModePtr adjusted_mode);
+    //xf86OutputStatus(*detect) (xf86OutputPtr output);
+    //DisplayModePtr(*get_modes) (xf86OutputPtr output);
+    //#ifdef RANDR_12_INTERFACE
+    //Bool(*set_property) (xf86OutputPtr output, Atom property, RRPropertyValuePtr value);
+    //#endif
+    //#ifdef RANDR_13_INTERFACE
+    //Bool (*get_property) (xf86OutputPtr output, Atom property);
+    //#endif
+    //#ifdef RANDR_GET_CRTC_INTERFACE
+    //xf86CrtcPtr(*get_crtc) (xf86OutputPtr output);
+    //#endif
+    //void (*destroy) (xf86OutputPtr output);
+};
+
+
+//==================================================================================================
+#endif
+
 /* Mandatory */
 Bool
 DUMMYPreInit(ScrnInfoPtr pScrn, int flags)
@@ -283,6 +468,10 @@ DUMMYPreInit(ScrnInfoPtr pScrn, int flags)
     DUMMYPtr dPtr;
     int maxClock = 230000;
     GDevPtr device = xf86GetEntityInfo(pScrn->entityList[0])->device;
+#ifdef SPARKLE_MODE
+    xf86CrtcPtr crtc;
+    xf86OutputPtr output;
+#endif
 
     if (flags & PROBE_DETECT) 
 	return TRUE;
@@ -368,7 +557,11 @@ DUMMYPreInit(ScrnInfoPtr pScrn, int flags)
 	xf86DrvMsg(pScrn->scrnIndex, X_CONFIG, "VideoRAM: %d kByte\n",
 		   pScrn->videoRam);
     } else {
+#ifndef SPARKLE_MODE
 	pScrn->videoRam = 4096;
+#else
+    pScrn->videoRam = 16 * 1096;
+#endif
 	xf86DrvMsg(pScrn->scrnIndex, X_PROBED, "VideoRAM: %d kByte\n",
 		   pScrn->videoRam);
     }
@@ -383,6 +576,8 @@ DUMMYPreInit(ScrnInfoPtr pScrn, int flags)
     }
 
     pScrn->progClock = TRUE;
+
+#ifndef SPARKLE_MODE
     /*
      * Setup the ClockRanges, which describe what clock ranges are available,
      * and what sort of modes they can be used for.
@@ -439,6 +634,31 @@ DUMMYPreInit(ScrnInfoPtr pScrn, int flags)
 
     /* If monitor resolution is set on the command line, use it */
     xf86SetDpi(pScrn, 0, 0);
+
+#else
+
+    dPtr->modes = xf86CVTMode(800, 600, 60, 0, 0);
+
+    //FIXME Check results
+    xf86CrtcConfigInit(pScrn, &dummyCrtcConfigFuncs);
+    xf86CrtcSetSizeRange(pScrn, 240, 240, 2048, 2048);
+
+    crtc = xf86CrtcCreate(pScrn, &dummyCrtcFuncs);
+    output = xf86OutputCreate(pScrn, &dummyOutputFuncs, "sparkle");
+    output->possible_crtcs = 0x7f; //Why?
+
+    xf86InitialConfiguration (pScrn, TRUE);
+
+    pScrn->currentMode = pScrn->modes; //Needed?
+
+    crtc->funcs->set_mode_major(crtc, pScrn->currentMode, RR_Rotate_0, 0, 0); //Needed?
+
+    xf86SetDpi(pScrn, 0, 0);
+
+    //output->mm_width = 0;
+    //output->mm_height = 0;
+    
+#endif
 
     if (xf86LoadSubModule(pScrn, "fb") == NULL) {
 	RETURN;
@@ -533,8 +753,18 @@ DUMMYScreenInit(SCREEN_INIT_ARGS_DECL)
     DUMMYScrn = pScrn;
 
 
+#ifndef SPARKLE_MODE
     if (!(dPtr->FBBase = malloc(pScrn->videoRam * 1024)))
 	return FALSE;
+#else
+    if (DUMMYOpenSharedResources(pScreen) != TRUE)
+    {
+        return FALSE;
+    }
+
+    dPtr->configuredWidth = 0;
+    dPtr->configuredHeight = 0;
+#endif
     
     /*
      * next we save the current state and setup the first mode
@@ -558,6 +788,10 @@ DUMMYScreenInit(SCREEN_INIT_ARGS_DECL)
          return FALSE;
 
     if (!miSetPixmapDepths ()) return FALSE;
+
+#ifdef SPARKLE_MODE
+    pScrn->displayWidth = pScrn->virtualX; //FIXME Segfault without this
+#endif
 
     /*
      * Call the framebuffer layer's ScreenInit function, and fill in other
@@ -587,6 +821,11 @@ DUMMYScreenInit(SCREEN_INIT_ARGS_DECL)
     
     /* must be after RGB ordering fixed */
     fbPictureInit(pScreen, 0, 0);
+
+#ifdef SPARKLE_MODE
+    dPtr->CreateScreenResources = pScreen->CreateScreenResources;
+    pScreen->CreateScreenResources = DUMMYCreateScreenResources;
+#endif
 
     xf86SetBlackWhitePixels(pScreen);
 
@@ -649,9 +888,21 @@ DUMMYScreenInit(SCREEN_INIT_ARGS_DECL)
     dPtr->CloseScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = DUMMYCloseScreen;
 
+#ifdef SPARKLE_MODE
+    dPtr->BlockHandler = pScreen->BlockHandler;
+    pScreen->BlockHandler = DUMMYBlockHandler;
+#endif
+
+#ifdef SPARKLE_MODE
+    //Bool xf86DiDGAInit (ScreenPtr screen, unsigned long dga_address);
+    xf86CrtcScreenInit(pScreen); //FIXME Check result. See modesetting.
+#endif
+
+#ifndef SPARKLE_MODE
     /* Wrap the current CreateWindow function */
     dPtr->CreateWindow = pScreen->CreateWindow;
     pScreen->CreateWindow = DUMMYCreateWindow;
+#endif
 
     /* Report any unused options (only for the first generation) */
     if (serverGeneration == 1) {
@@ -666,6 +917,9 @@ Bool
 DUMMYSwitchMode(SWITCH_MODE_ARGS_DECL)
 {
     SCRN_INFO_PTR(arg);
+#ifdef SPARKLE_MODE
+    //Bool xf86SetSingleMode (ScrnInfoPtr scrn, DisplayModePtr desired, Rotation rotation);
+#endif
     return dummyModeInit(pScrn, mode);
 }
 
@@ -703,13 +957,26 @@ DUMMYCloseScreen(CLOSE_SCREEN_ARGS_DECL)
 
     if(pScrn->vtSema){
  	dummyRestore(pScrn, TRUE);
+#ifndef SPARKLE_MODE
 	free(dPtr->FBBase);
+#else
+    DUMMYCloseSharedResources(pScreen);
+#endif
     }
 
     if (dPtr->CursorInfo)
 	xf86DestroyCursorInfoRec(dPtr->CursorInfo);
 
+#ifdef SPARKLE_MODE
+    DamageUnregister(dPtr->damage);
+    DamageDestroy(dPtr->damage);
+#endif
+
     pScrn->vtSema = FALSE;
+#ifdef SPARKLE_MODE
+    pScreen->CreateScreenResources = dPtr->CreateScreenResources;
+    pScreen->BlockHandler = dPtr->BlockHandler;
+#endif
     pScreen->CloseScreen = dPtr->CloseScreen;
     return (*pScreen->CloseScreen)(CLOSE_SCREEN_ARGS);
 }
@@ -765,6 +1032,7 @@ dummyModeInit(ScrnInfoPtr pScrn, DisplayModePtr mode)
 Atom VFB_PROP  = 0;
 #define  VFB_PROP_NAME  "VFB_IDENT"
 
+#ifndef SPARKLE_MODE
 static Bool
 DUMMYCreateWindow(WindowPtr pWin)
 {
@@ -800,6 +1068,7 @@ DUMMYCreateWindow(WindowPtr pWin)
     }
     return TRUE;
 }
+#endif
 
 #ifndef HW_SKIP_CONSOLE
 #define HW_SKIP_CONSOLE 4
@@ -819,3 +1088,183 @@ dummyDriverFunc(ScrnInfoPtr pScrn, xorgDriverFuncOp op, pointer ptr)
 	    return FALSE;
     }
 }
+
+
+#ifdef SPARKLE_MODE
+
+static Bool
+DUMMYUpdateModes(ScrnInfoPtr pScrn, int width, int height)
+{
+    DUMMYPtr dPtr;
+    dPtr = DUMMYPTR(pScrn);
+
+    DisplayModePtr mode = dPtr->modes;
+    while (mode != NULL)
+    {
+        DisplayModePtr nextMode = mode->next;
+        free((void *)mode->name);
+        free(mode);
+        mode = nextMode;
+    }   
+    dPtr->modes = NULL;
+
+    dPtr->modes = xf86ModesAdd(dPtr->modes, xf86CVTMode(width, height, 60, 0, 0));
+    dPtr->modes = xf86ModesAdd(dPtr->modes, xf86CVTMode(width/2, height/2, 60, 0, 0));
+    dPtr->modes = xf86ModesAdd(dPtr->modes, xf86CVTMode(width/4, height/4, 60, 0, 0));
+    dPtr->modes = xf86ModesAdd(dPtr->modes, xf86CVTMode(width*2, height*2, 60, 0, 0));
+
+    xf86ProbeOutputModes(pScrn, 2048, 2048);
+    //xf86SetScrnInfoModes(pScrn);
+
+    return TRUE;
+}
+
+static Bool
+DUMMYOpenSharedResources(ScreenPtr pScreen)
+{
+    ScrnInfoPtr pScrn;
+    DUMMYPtr dPtr;
+
+    pScrn = xf86ScreenToScrn(pScreen);
+    dPtr = DUMMYPTR(pScrn);
+
+    dPtr->shared_framebuffer = shared_resource_open("/dev/sparkle_framebuffer", pScrn->videoRam * 1024, 1, (void **)&dPtr->FBBase);
+    if (dPtr->shared_framebuffer == NULL)
+    {
+        return FALSE;
+    }
+
+    dPtr->shared_info = shared_resource_open("/dev/sparkle_info", sizeof(struct sparkle_shared_t), 1, (void **)&dPtr->shared);
+    if (dPtr->shared_info == NULL)
+    {
+        return FALSE;
+    }
+
+    //FIXME
+    dPtr->shared->pixmapWidth = pScrn->virtualX; //FIXME
+    dPtr->shared->pixmapHeight = pScrn->virtualY;
+    dPtr->shared->surfaceWidth = 0;
+    dPtr->shared->surfaceHeight = 0;
+    dPtr->shared->damage = 0;
+    dPtr->shared->damageX1 = 0;
+    dPtr->shared->damageY1 = 0;
+    dPtr->shared->damageX2 = 0;
+    dPtr->shared->damageY2 = 0;
+
+    return TRUE;
+}
+
+static Bool
+DUMMYCloseSharedResources(ScreenPtr pScreen)
+{
+    ScrnInfoPtr pScrn;
+    DUMMYPtr dPtr;
+
+    pScrn = xf86ScreenToScrn(pScreen);
+    dPtr = DUMMYPTR(pScrn);
+
+    shared_resource_close(dPtr->shared_info);
+    shared_resource_close(dPtr->shared_framebuffer);
+
+    return TRUE;
+}
+
+static Bool
+DUMMYCreateScreenResources(ScreenPtr pScreen)
+{
+    ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
+    DUMMYPtr dPtr = DUMMYPTR(pScrn);
+    Bool ret;
+    PixmapPtr pPixmap;
+
+    pScreen->CreateScreenResources = dPtr->CreateScreenResources;
+    ret = pScreen->CreateScreenResources(pScreen);
+    pScreen->CreateScreenResources = DUMMYCreateScreenResources;
+
+    if (!ret)
+	return FALSE;
+
+    pPixmap = pScreen->GetScreenPixmap(pScreen);
+
+    dPtr->damage = DamageCreate(NULL, NULL, DamageReportNone, TRUE, pScreen, pPixmap);
+    if (!dPtr->damage)
+    {
+        xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "Failed to create screen damage record\n");
+        return FALSE;
+    }
+
+    DamageRegister(&pPixmap->drawable, dPtr->damage);
+
+    return TRUE;
+}
+
+static void
+DUMMYBlockHandler(ScreenPtr pScreen, void *pTimeout, void *pReadmask)
+{
+    ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
+    DUMMYPtr dPtr = DUMMYPTR(pScrn);
+
+    pScreen->BlockHandler = dPtr->BlockHandler;
+    pScreen->BlockHandler(pScreen, pTimeout, pReadmask);
+    dPtr->BlockHandler = pScreen->BlockHandler;
+    pScreen->BlockHandler = DUMMYBlockHandler;
+
+
+    //FIXME
+    {
+        if (dPtr->shared->surfaceWidth != dPtr->configuredWidth || dPtr->shared->surfaceHeight != dPtr->configuredHeight)
+        {
+            xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Reconfiguring for %dx%d\n", dPtr->shared->surfaceWidth, dPtr->shared->surfaceHeight);
+
+            DUMMYUpdateModes(pScrn, dPtr->shared->surfaceWidth, dPtr->shared->surfaceHeight);
+
+            DisplayModePtr mode = dPtr->modes;
+            //pScrn->currentMode = mode;
+
+            RRScreenSizeSet(pScreen, mode->HDisplay, mode->VDisplay, 0, 0);
+            xf86SetSingleMode(pScrn, mode, RR_Rotate_0);
+
+            dPtr->configuredWidth = dPtr->shared->surfaceWidth;
+            dPtr->configuredHeight = dPtr->shared->surfaceHeight;
+        }
+    }
+
+
+    RegionPtr pRegion = DamageRegion(dPtr->damage);
+
+    //FIXME Shared mutex?
+    if (RegionNotEmpty(pRegion))
+    {
+        if (dPtr->shared->damage == 0)
+        {
+            dPtr->shared->damageX1 = pRegion->extents.x1;
+            dPtr->shared->damageY1 = pRegion->extents.y1;
+            dPtr->shared->damageX2 = pRegion->extents.x2;
+            dPtr->shared->damageY2 = pRegion->extents.y2;
+            dPtr->shared->damage = 1;
+        }
+        else
+        {
+            dPtr->shared->damageX1 = min(pRegion->extents.x1, dPtr->shared->damageX1);
+            dPtr->shared->damageY1 = min(pRegion->extents.y1, dPtr->shared->damageY1);
+            dPtr->shared->damageX2 = max(pRegion->extents.x2, dPtr->shared->damageX2);
+            dPtr->shared->damageY2 = max(pRegion->extents.y2, dPtr->shared->damageY2);
+        }
+
+        DamageEmpty(dPtr->damage);
+    }
+}
+
+
+#endif
+
+
+/*
+
+void xf86SetScrnInfoModes (ScrnInfoPtr pScrn); // This copies the 'compat' output mode list
+Bool xf86DiDGAReInit (ScreenPtr pScreen); // This is similar to xf86SetScrnInfoModes
+void xf86DisableUnusedFunctions(ScrnInfoPtr pScrn); // Cleans up after xf86CrtcSetMode
+
+*/
+
+

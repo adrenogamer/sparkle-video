@@ -42,3 +42,8 @@ if DGA
 dummy_drv_la_SOURCES +=	\
          dummy_dga.c
 endif
+
+dummy_drv_la_SOURCES +=	\
+         shared_resource.c \
+         shared_resource.h \
+         sparkle_shared.h

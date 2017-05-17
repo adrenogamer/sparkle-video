@@ -13,6 +13,13 @@
 
 #include "compat-api.h"
 
+#define SPARKLE_MODE
+
+#ifdef SPARKLE_MODE
+#include "shared_resource.h"
+#include "sparkle_shared.h"
+#endif
+
 /* Supported chipsets */
 typedef enum {
     DUMMY_CHIP
@@ -70,8 +77,23 @@ typedef struct dummyRec
     int interlace;
     dummy_colors colors[256];
     pointer* FBBase;
+#ifndef SPARKLE_MODE
     Bool        (*CreateWindow)() ;     /* wrapped CreateWindow */
+#endif
     Bool prop;
+#ifdef SPARKLE_MODE
+    struct shared_resource_t *shared_framebuffer;
+    struct shared_resource_t *shared_info;
+
+    struct sparkle_shared_t *shared;
+    CreateScreenResourcesProcPtr CreateScreenResources;
+    DamagePtr damage;
+    ScreenBlockHandlerProcPtr BlockHandler;
+
+    int configuredWidth;
+    int configuredHeight;
+    DisplayModePtr modes;
+#endif
 } DUMMYRec, *DUMMYPtr;
 
 /* The privates of the DUMMY driver */

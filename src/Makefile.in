@@ -159,10 +159,11 @@ LTLIBRARIES = $(dummy_drv_la_LTLIBRARIES)
 am__DEPENDENCIES_1 =
 dummy_drv_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am__dummy_drv_la_SOURCES_DIST = compat-api.h dummy_cursor.c \
-	dummy_driver.c dummy.h dummy_dga.c
+	dummy_driver.c dummy.h dummy_dga.c shared_resource.c \
+	shared_resource.h sparkle_shared.h
 @DGA_TRUE@am__objects_1 = dummy_dga.lo
 am_dummy_drv_la_OBJECTS = dummy_cursor.lo dummy_driver.lo \
-	$(am__objects_1)
+	$(am__objects_1) shared_resource.lo
 dummy_drv_la_OBJECTS = $(am_dummy_drv_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -382,7 +383,8 @@ dummy_drv_la_LDFLAGS = -module -avoid-version
 dummy_drv_la_LIBADD = $(XORG_LIBS)
 dummy_drv_ladir = @moduledir@/drivers
 dummy_drv_la_SOURCES = compat-api.h dummy_cursor.c dummy_driver.c \
-	dummy.h $(am__append_1)
+	dummy.h $(am__append_1) shared_resource.c shared_resource.h \
+	sparkle_shared.h
 all: all-am
 
 .SUFFIXES:
@@ -464,6 +466,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dummy_cursor.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dummy_dga.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dummy_driver.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/shared_resource.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
