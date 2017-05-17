@@ -1221,7 +1221,11 @@ DUMMYBlockHandler(ScreenPtr pScreen, void *pTimeout, void *pReadmask)
             DisplayModePtr mode = dPtr->modes;
             //pScrn->currentMode = mode;
 
-            RRScreenSizeSet(pScreen, mode->HDisplay, mode->VDisplay, 0, 0);
+            //FIXME Take DPI from config
+            int mmWidth = mode->HDisplay * 254 / 960;
+            int mmHeight = mode->VDisplay * 254 / 960;
+
+            RRScreenSizeSet(pScreen, mode->HDisplay, mode->VDisplay, mmWidth, mmHeight);
             xf86SetSingleMode(pScrn, mode, RR_Rotate_0);
 
             dPtr->configuredWidth = dPtr->shared->surfaceWidth;
