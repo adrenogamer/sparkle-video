@@ -639,7 +639,7 @@ DUMMYPreInit(ScrnInfoPtr pScrn, int flags)
 
     dPtr->modes = xf86CVTMode(800, 600, 60, 0, 0);
 
-    //FIXME Check results
+    //XXX Check results
     xf86CrtcConfigInit(pScrn, &dummyCrtcConfigFuncs);
     xf86CrtcSetSizeRange(pScrn, 240, 240, 2048, 2048);
 
@@ -759,6 +759,7 @@ DUMMYScreenInit(SCREEN_INIT_ARGS_DECL)
 #else
     if (DUMMYOpenSharedResources(pScreen) != TRUE)
     {
+        xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "Failed to open shared resources\n");
         return FALSE;
     }
 
@@ -1108,13 +1109,16 @@ DUMMYUpdateModes(ScrnInfoPtr pScrn, int width, int height)
     }   
     dPtr->modes = NULL;
 
-    dPtr->modes = xf86ModesAdd(dPtr->modes, xf86CVTMode(width, height, 60, 0, 0));
+    dPtr->modes = xf86ModesAdd(dPtr->modes, xf86CVTMode(width, height, 60, 0, 0)); //Native
+
+    dPtr->modes = xf86ModesAdd(dPtr->modes, xf86CVTMode(width*10/15, height*10/15, 60, 0, 0));
     dPtr->modes = xf86ModesAdd(dPtr->modes, xf86CVTMode(width/2, height/2, 60, 0, 0));
     dPtr->modes = xf86ModesAdd(dPtr->modes, xf86CVTMode(width/4, height/4, 60, 0, 0));
-    dPtr->modes = xf86ModesAdd(dPtr->modes, xf86CVTMode(width*2, height*2, 60, 0, 0));
+
+    dPtr->modes = xf86ModesAdd(dPtr->modes, xf86CVTMode(width*15/10, height*15/10, 60, 0, 0));
 
     xf86ProbeOutputModes(pScrn, 2048, 2048);
-    //xf86SetScrnInfoModes(pScrn);
+    xf86SetScrnInfoModes(pScrn); //Needed?
 
     return TRUE;
 }
@@ -1140,9 +1144,10 @@ DUMMYOpenSharedResources(ScreenPtr pScreen)
         return FALSE;
     }
 
-    //FIXME
-    dPtr->shared->pixmapWidth = pScrn->virtualX; //FIXME
+    //XXX Check
+    dPtr->shared->pixmapWidth = pScrn->virtualX;
     dPtr->shared->pixmapHeight = pScrn->virtualY;
+    dPtr->shared->pixmapFormat = SPARKLE_FORMAT_BGRA8888;
     dPtr->shared->surfaceWidth = 0;
     dPtr->shared->surfaceHeight = 0;
     dPtr->shared->damage = 0;
