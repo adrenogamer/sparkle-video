@@ -22,10 +22,9 @@
 
 # Initialize Autoconf
 AC_PREREQ([2.60])
-AC_INIT([xf86-video-dummy],
-        [0.3.7],
-        [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg],
-        [xf86-video-dummy])
+AC_INIT([sparklevideo],
+        [0.1.0],
+        [knight@mail.ua])
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR(.)
@@ -72,7 +71,7 @@ PKG_CHECK_MODULES(XORG, [xorg-server >= 1.0.99.901] xproto fontsproto $REQUIRED_
 # Checks for libraries.
 
 
-DRIVER_NAME=dummy
+DRIVER_NAME=sparklevideo
 AC_SUBST([DRIVER_NAME])
 
 AC_CONFIG_FILES([

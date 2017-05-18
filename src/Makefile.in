@@ -154,24 +154,25 @@ am__uninstall_files_from_dir = { \
     || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
-am__installdirs = "$(DESTDIR)$(dummy_drv_ladir)"
-LTLIBRARIES = $(dummy_drv_la_LTLIBRARIES)
+am__installdirs = "$(DESTDIR)$(sparklevideo_drv_ladir)"
+LTLIBRARIES = $(sparklevideo_drv_la_LTLIBRARIES)
 am__DEPENDENCIES_1 =
-dummy_drv_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
-am__dummy_drv_la_SOURCES_DIST = compat-api.h dummy_cursor.c \
+sparklevideo_drv_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
+am__sparklevideo_drv_la_SOURCES_DIST = compat-api.h dummy_cursor.c \
 	dummy_driver.c dummy.h dummy_dga.c shared_resource.c \
 	shared_resource.h sparkle_shared.h
 @DGA_TRUE@am__objects_1 = dummy_dga.lo
-am_dummy_drv_la_OBJECTS = dummy_cursor.lo dummy_driver.lo \
+am_sparklevideo_drv_la_OBJECTS = dummy_cursor.lo dummy_driver.lo \
 	$(am__objects_1) shared_resource.lo
-dummy_drv_la_OBJECTS = $(am_dummy_drv_la_OBJECTS)
+sparklevideo_drv_la_OBJECTS = $(am_sparklevideo_drv_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-dummy_drv_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(dummy_drv_la_LDFLAGS) $(LDFLAGS) -o $@
+sparklevideo_drv_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(sparklevideo_drv_la_LDFLAGS) \
+	$(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -206,8 +207,8 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(dummy_drv_la_SOURCES)
-DIST_SOURCES = $(am__dummy_drv_la_SOURCES_DIST)
+SOURCES = $(sparklevideo_drv_la_SOURCES)
+DIST_SOURCES = $(am__sparklevideo_drv_la_SOURCES_DIST)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -378,13 +379,13 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CFLAGS = $(XORG_CFLAGS) $(PCIACCESS_CFLAGS)
-dummy_drv_la_LTLIBRARIES = dummy_drv.la
-dummy_drv_la_LDFLAGS = -module -avoid-version
-dummy_drv_la_LIBADD = $(XORG_LIBS)
-dummy_drv_ladir = @moduledir@/drivers
-dummy_drv_la_SOURCES = compat-api.h dummy_cursor.c dummy_driver.c \
-	dummy.h $(am__append_1) shared_resource.c shared_resource.h \
-	sparkle_shared.h
+sparklevideo_drv_la_LTLIBRARIES = sparklevideo_drv.la
+sparklevideo_drv_la_LDFLAGS = -module -avoid-version
+sparklevideo_drv_la_LIBADD = $(XORG_LIBS)
+sparklevideo_drv_ladir = @moduledir@/drivers
+sparklevideo_drv_la_SOURCES = compat-api.h dummy_cursor.c \
+	dummy_driver.c dummy.h $(am__append_1) shared_resource.c \
+	shared_resource.h sparkle_shared.h
 all: all-am
 
 .SUFFIXES:
@@ -419,33 +420,33 @@ $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
 
-install-dummy_drv_laLTLIBRARIES: $(dummy_drv_la_LTLIBRARIES)
+install-sparklevideo_drv_laLTLIBRARIES: $(sparklevideo_drv_la_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
-	@list='$(dummy_drv_la_LTLIBRARIES)'; test -n "$(dummy_drv_ladir)" || list=; \
+	@list='$(sparklevideo_drv_la_LTLIBRARIES)'; test -n "$(sparklevideo_drv_ladir)" || list=; \
 	list2=; for p in $$list; do \
 	  if test -f $$p; then \
 	    list2="$$list2 $$p"; \
 	  else :; fi; \
 	done; \
 	test -z "$$list2" || { \
-	  echo " $(MKDIR_P) '$(DESTDIR)$(dummy_drv_ladir)'"; \
-	  $(MKDIR_P) "$(DESTDIR)$(dummy_drv_ladir)" || exit 1; \
-	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$list2 '$(DESTDIR)$(dummy_drv_ladir)'"; \
-	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$list2 "$(DESTDIR)$(dummy_drv_ladir)"; \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(sparklevideo_drv_ladir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(sparklevideo_drv_ladir)" || exit 1; \
+	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$list2 '$(DESTDIR)$(sparklevideo_drv_ladir)'"; \
+	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$list2 "$(DESTDIR)$(sparklevideo_drv_ladir)"; \
 	}
 
-uninstall-dummy_drv_laLTLIBRARIES:
+uninstall-sparklevideo_drv_laLTLIBRARIES:
 	@$(NORMAL_UNINSTALL)
-	@list='$(dummy_drv_la_LTLIBRARIES)'; test -n "$(dummy_drv_ladir)" || list=; \
+	@list='$(sparklevideo_drv_la_LTLIBRARIES)'; test -n "$(sparklevideo_drv_ladir)" || list=; \
 	for p in $$list; do \
 	  $(am__strip_dir) \
-	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f '$(DESTDIR)$(dummy_drv_ladir)/$$f'"; \
-	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f "$(DESTDIR)$(dummy_drv_ladir)/$$f"; \
+	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f '$(DESTDIR)$(sparklevideo_drv_ladir)/$$f'"; \
+	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f "$(DESTDIR)$(sparklevideo_drv_ladir)/$$f"; \
 	done
 
-clean-dummy_drv_laLTLIBRARIES:
-	-test -z "$(dummy_drv_la_LTLIBRARIES)" || rm -f $(dummy_drv_la_LTLIBRARIES)
-	@list='$(dummy_drv_la_LTLIBRARIES)'; \
+clean-sparklevideo_drv_laLTLIBRARIES:
+	-test -z "$(sparklevideo_drv_la_LTLIBRARIES)" || rm -f $(sparklevideo_drv_la_LTLIBRARIES)
+	@list='$(sparklevideo_drv_la_LTLIBRARIES)'; \
 	locs=`for p in $$list; do echo $$p; done | \
 	      sed 's|^[^/]*$$|.|; s|/[^/]*$$||; s|$$|/so_locations|' | \
 	      sort -u`; \
@@ -454,8 +455,8 @@ clean-dummy_drv_laLTLIBRARIES:
 	  rm -f $${locs}; \
 	}
 
-dummy_drv.la: $(dummy_drv_la_OBJECTS) $(dummy_drv_la_DEPENDENCIES) $(EXTRA_dummy_drv_la_DEPENDENCIES) 
-	$(AM_V_CCLD)$(dummy_drv_la_LINK) -rpath $(dummy_drv_ladir) $(dummy_drv_la_OBJECTS) $(dummy_drv_la_LIBADD) $(LIBS)
+sparklevideo_drv.la: $(sparklevideo_drv_la_OBJECTS) $(sparklevideo_drv_la_DEPENDENCIES) $(EXTRA_sparklevideo_drv_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(sparklevideo_drv_la_LINK) -rpath $(sparklevideo_drv_ladir) $(sparklevideo_drv_la_OBJECTS) $(sparklevideo_drv_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -581,7 +582,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(LTLIBRARIES)
 installdirs:
-	for dir in "$(DESTDIR)$(dummy_drv_ladir)"; do \
+	for dir in "$(DESTDIR)$(sparklevideo_drv_ladir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -616,8 +617,8 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-dummy_drv_laLTLIBRARIES clean-generic clean-libtool \
-	mostlyclean-am
+clean-am: clean-generic clean-libtool \
+	clean-sparklevideo_drv_laLTLIBRARIES mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -637,7 +638,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-dummy_drv_laLTLIBRARIES
+install-data-am: install-sparklevideo_drv_laLTLIBRARIES
 
 install-dvi: install-dvi-am
 
@@ -683,24 +684,25 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-dummy_drv_laLTLIBRARIES
+uninstall-am: uninstall-sparklevideo_drv_laLTLIBRARIES
 
 .MAKE: install-am install-strip
 
-.PHONY: CTAGS GTAGS TAGS all all-am check check-am clean \
-	clean-dummy_drv_laLTLIBRARIES clean-generic clean-libtool \
+.PHONY: CTAGS GTAGS TAGS all all-am check check-am clean clean-generic \
+	clean-libtool clean-sparklevideo_drv_laLTLIBRARIES \
 	cscopelist-am ctags ctags-am distclean distclean-compile \
 	distclean-generic distclean-libtool distclean-tags distdir dvi \
 	dvi-am html html-am info info-am install install-am \
-	install-data install-data-am install-dummy_drv_laLTLIBRARIES \
-	install-dvi install-dvi-am install-exec install-exec-am \
-	install-html install-html-am install-info install-info-am \
-	install-man install-pdf install-pdf-am install-ps \
-	install-ps-am install-strip installcheck installcheck-am \
-	installdirs maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-compile mostlyclean-generic \
-	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-am uninstall \
-	uninstall-am uninstall-dummy_drv_laLTLIBRARIES
+	install-data install-data-am install-dvi install-dvi-am \
+	install-exec install-exec-am install-html install-html-am \
+	install-info install-info-am install-man install-pdf \
+	install-pdf-am install-ps install-ps-am \
+	install-sparklevideo_drv_laLTLIBRARIES install-strip \
+	installcheck installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	tags tags-am uninstall uninstall-am \
+	uninstall-sparklevideo_drv_laLTLIBRARIES
 
 .PRECIOUS: Makefile
 

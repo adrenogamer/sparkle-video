@@ -96,8 +96,14 @@ static Bool DUMMYCrtc_set_mode_major(xf86CrtcPtr crtc, DisplayModePtr mode, Rota
 #endif
 
 #define DUMMY_VERSION 4000
+
+#ifndef SPARKLE_MODE
 #define DUMMY_NAME "DUMMY"
 #define DUMMY_DRIVER_NAME "dummy"
+#else
+#define DUMMY_NAME "SPARKLEVIDEO"
+#define DUMMY_DRIVER_NAME "sparklevideo"
+#endif
 
 #define DUMMY_MAJOR_VERSION PACKAGE_VERSION_MAJOR
 #define DUMMY_MINOR_VERSION PACKAGE_VERSION_MINOR
@@ -121,7 +127,11 @@ static int pix24bpp = 0;
  * an upper-case version of the driver name.
  */
 
+#ifndef SPARKLE_MODE
 _X_EXPORT DriverRec DUMMY = {
+#else
+_X_EXPORT DriverRec SPARKLEVIDEO = {
+#endif
     DUMMY_VERSION,
     DUMMY_DRIVER_NAME,
     DUMMYIdentify,
@@ -133,7 +143,11 @@ _X_EXPORT DriverRec DUMMY = {
 };
 
 static SymTabRec DUMMYChipsets[] = {
+#ifndef SPARKLE_MODE
     { DUMMY_CHIP,   "dummy" },
+#else
+    { DUMMY_CHIP,   "sparklevideo" },
+#endif
     { -1,		 NULL }
 };
 
@@ -152,7 +166,11 @@ static MODULESETUPPROTO(dummySetup);
 
 static XF86ModuleVersionInfo dummyVersRec =
 {
+#ifndef SPARKLE_MODE
 	"dummy",
+#else
+    "sparklevideo",
+#endif
 	MODULEVENDORSTRING,
 	MODINFOSTRING1,
 	MODINFOSTRING2,
@@ -168,7 +186,11 @@ static XF86ModuleVersionInfo dummyVersRec =
  * This is the module init data.
  * Its name has to be the driver name followed by ModuleData
  */
+#ifndef SPARKLE_MODE
 _X_EXPORT XF86ModuleData dummyModuleData = { &dummyVersRec, dummySetup, NULL };
+#else
+_X_EXPORT XF86ModuleData sparklevideoModuleData = { &dummyVersRec, dummySetup, NULL };
+#endif
 
 static pointer
 dummySetup(pointer module, pointer opts, int *errmaj, int *errmin)
@@ -177,7 +199,11 @@ dummySetup(pointer module, pointer opts, int *errmaj, int *errmin)
 
     if (!setupDone) {
 	setupDone = TRUE;
+#ifndef SPARKLE_MODE
         xf86AddDriver(&DUMMY, module, HaveDriverFuncs);
+#else
+        xf86AddDriver(&SPARKLEVIDEO, module, HaveDriverFuncs);
+#endif
 
 	/*
 	 * Modules that this driver always requires can be loaded here
@@ -234,8 +260,10 @@ DUMMYAvailableOptions(int chipid, int busid)
 static void
 DUMMYIdentify(int flags)
 {
+#ifndef SPARKLE_MODE
     xf86PrintChipsets(DUMMY_NAME, "Driver for Dummy chipsets",
 			DUMMYChipsets);
+#endif
 }
 
 /* Mandatory */
@@ -486,8 +514,10 @@ DUMMYPreInit(ScrnInfoPtr pScrn, int flags)
     pScrn->chipset = (char *)xf86TokenToString(DUMMYChipsets,
 					       DUMMY_CHIP);
 
+#ifndef SPARKLE_MODE
     xf86DrvMsg(pScrn->scrnIndex, X_INFO, "Chipset is a DUMMY\n");
-    
+#endif
+
     pScrn->monitor = pScrn->confScreen->monitor;
 
     if (!xf86SetDepthBpp(pScrn, 0, 0, 0,  Support24bppFb | Support32bppFb))
@@ -1266,14 +1296,4 @@ DUMMYBlockHandler(ScreenPtr pScreen, void *pTimeout, void *pReadmask)
 
 
 #endif
-
-
-/*
-
-void xf86SetScrnInfoModes (ScrnInfoPtr pScrn); // This copies the 'compat' output mode list
-Bool xf86DiDGAReInit (ScreenPtr pScreen); // This is similar to xf86SetScrnInfoModes
-void xf86DisableUnusedFunctions(ScrnInfoPtr pScrn); // Cleans up after xf86CrtcSetMode
-
-*/
-
 

@@ -27,23 +27,23 @@
 
 AM_CFLAGS = $(XORG_CFLAGS) $(PCIACCESS_CFLAGS)
 
-dummy_drv_la_LTLIBRARIES = dummy_drv.la
-dummy_drv_la_LDFLAGS = -module -avoid-version
-dummy_drv_la_LIBADD = $(XORG_LIBS)
-dummy_drv_ladir = @moduledir@/drivers
+sparklevideo_drv_la_LTLIBRARIES = sparklevideo_drv.la
+sparklevideo_drv_la_LDFLAGS = -module -avoid-version
+sparklevideo_drv_la_LIBADD = $(XORG_LIBS)
+sparklevideo_drv_ladir = @moduledir@/drivers
 
-dummy_drv_la_SOURCES = \
+sparklevideo_drv_la_SOURCES = \
          compat-api.h \
          dummy_cursor.c \
          dummy_driver.c \
          dummy.h
 
 if DGA
-dummy_drv_la_SOURCES +=	\
+sparklevideo_drv_la_SOURCES +=	\
          dummy_dga.c
 endif
 
-dummy_drv_la_SOURCES +=	\
+sparklevideo_drv_la_SOURCES +=	\
          shared_resource.c \
          shared_resource.h \
          sparkle_shared.h
