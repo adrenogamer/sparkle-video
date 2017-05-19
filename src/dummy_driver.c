@@ -89,7 +89,7 @@ static Bool DUMMYOpenSharedResources(ScreenPtr pScreen);
 static Bool DUMMYCloseSharedResources(ScreenPtr pScreen);
 
 static Bool DUMMYCreateScreenResources(ScreenPtr pScreen);
-static void DUMMYBlockHandler(ScreenPtr pScreen, void *pTimeout, void *pReadmask);
+static void DUMMYBlockHandler(BLOCKHANDLER_ARGS_DECL);
 
 static Bool DUMMYCrtc_set_mode_major(xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation, int x, int y);
 
@@ -1234,13 +1234,15 @@ DUMMYCreateScreenResources(ScreenPtr pScreen)
 }
 
 static void
-DUMMYBlockHandler(ScreenPtr pScreen, void *pTimeout, void *pReadmask)
+DUMMYBlockHandler(BLOCKHANDLER_ARGS_DECL)
 {
+    SCREEN_PTR(arg);
+
     ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     DUMMYPtr dPtr = DUMMYPTR(pScrn);
 
     pScreen->BlockHandler = dPtr->BlockHandler;
-    pScreen->BlockHandler(pScreen, pTimeout, pReadmask);
+    pScreen->BlockHandler(BLOCKHANDLER_ARGS);
     dPtr->BlockHandler = pScreen->BlockHandler;
     pScreen->BlockHandler = DUMMYBlockHandler;
 
