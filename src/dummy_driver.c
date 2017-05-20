@@ -526,7 +526,9 @@ DUMMYPreInit(ScrnInfoPtr pScrn, int flags)
 	/* Check that the returned depth is one we support */
 	switch (pScrn->depth) {
 	case 8:
+#ifndef SPARKLE_MODE
 	case 15:
+#endif
 	case 16:
 	case 24:
 	    break;
@@ -1177,7 +1179,22 @@ DUMMYOpenSharedResources(ScreenPtr pScreen)
     //XXX Check
     dPtr->shared->pixmapWidth = pScrn->virtualX;
     dPtr->shared->pixmapHeight = pScrn->virtualY;
-    dPtr->shared->pixmapFormat = SPARKLE_FORMAT_BGRA8888;
+
+	switch (pScrn->bitsPerPixel)
+    {
+	case 8:
+        dPtr->shared->pixmapFormat = SPARKLE_FORMAT_STATIC_GRAY;
+        break;
+	case 16:
+        dPtr->shared->pixmapFormat = SPARKLE_FORMAT_RGB565;
+        break;
+	case 24:
+        dPtr->shared->pixmapFormat = SPARKLE_FORMAT_BGRA8888;
+	    break;
+	default:
+	    return FALSE;
+	}
+
     dPtr->shared->surfaceWidth = 0;
     dPtr->shared->surfaceHeight = 0;
     dPtr->shared->damage = 0;
