@@ -31,6 +31,7 @@ AC_CONFIG_AUX_DIR(.)
 
 # Initialize Automake
 AM_INIT_AUTOMAKE([foreign dist-bzip2])
+# git clone
 AM_MAINTAINER_MODE
 
 # Require xorg-macros: XORG_DEFAULT_OPTIONS
@@ -79,3 +80,4 @@ AC_CONFIG_FILES([
                 src/Makefile
 ])
 AC_OUTPUT
+

@@ -27,3 +27,4 @@ ChangeLog:
 	$(CHANGELOG_CMD)
 
 dist-hook: ChangeLog
+
