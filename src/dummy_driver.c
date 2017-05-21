@@ -1188,7 +1188,7 @@ DUMMYOpenSharedResources(ScreenPtr pScreen)
 	case 16:
         dPtr->shared->pixmapFormat = SPARKLE_FORMAT_RGB565;
         break;
-	case 24:
+	case 32:
         dPtr->shared->pixmapFormat = SPARKLE_FORMAT_BGRA8888;
 	    break;
 	default:
